@@ -1,0 +1,7 @@
+*.out
+*.tmp
+*.log
+.vscode/
+.stack-work/
+.stack-work-win/
+test*
