@@ -1,7 +1,11 @@
-# Steak 1.0
+# Learning C++ 11 By Looking Inside Steak
+
+## Time for advertisement
+
+### Steak 1.0
 ### A programming language which provides generalized algebraic data types, pattern matching and lazy evaluation based on C++17.
 
-# Installation
+### Installation
 
 * As a domain specific language powered by C++ macros
 
@@ -13,20 +17,20 @@ Just copy include/runtime.h and include/steak.h into your project and #include "
     1. clone this repository
     1. run `stack install`
 
-# Steak Language Documentation
+### Steak Language Documentation
 
 Steak programming language inherits C++17 completely except that `match` and `dataclass` are keywords.
 
 The extension names of Steak are `.stk.cpp`,`.stk.hpp` or `.stk.h`. The compiler will compile source files to c++17 code.
 
-## Usage
+#### Usage
 
 * steak file: compile the source file and print the object code to stdout
 * steak dirctory: search the directory recursively and compile all `*.stk.cpp`,`*.stk.h`,`*.stk.hpp` to `*.cpp`,`*.h`,`*.hpp`
 * steak --version: version and license
 * steak --help: help
 
-## Language Specification
+#### Language Specification
 * `dataclass` is for defining generalized algebraic data types.
 Usage:
 `[]` means optional
@@ -57,77 +61,31 @@ match(var)
 
 Examples are available at `examples/`
 
-## Warnings
+#### Warnings
 
 * Remember that compiler won't deal with macros. As a result, don't use macros in `dataclass` or `match` expressions.
 * In the `case Cons(...)` expression, only literals and identifiers are allowed, operators and function call are not allowed.For example,`Just(x)` and `Just(1)` are valid, while `Just(x.c)` or `Just(1+3)` are invalid. Constructor with no paramenter also need to be followed by `()`, for example, `case Nothing()`.
 * If you know the implementations of the library and the compiler, you will understand all the strange things.
 
-# C++ DSL Documentation
+# Let's go to our topic
 
-* generalized algebraic data types
+* topics we will cover
+    * Points
+        * reinterpret_cast
+        * using
+        * variadic template
+        * rvalue reference
+        * perfect forwarding
+        * reference folds
+        * decltype
+        * fold expression
+        * SFINAE
+        * if constexpr
+    * Tricks
+        * currying template
+        * dependent type
+        * macro tricks
 
-    Generalized algebraic data types can be defined via C++ macros.
-
-    Let's take 
-    ```haskell
-    data List a = Cons a (List a) deriving Show
-    ``` 
-    as an example:
-    ```C++
-    RegCons(Nil) RegCons(Cons)
-    Data(Va,List,RealType(Nil),RealType(Cons,a,List<a>))
-        Cons0(Va,Nil,List<a>)
-        Cons2(Va,Cons,a,List<a>,List<a>)
-    DerivingShow(Va,List<a>)
-    ```
-    Another example :
-    ```haskell
-    data Peano = Z | S Peano deriving Show
-    ```
-    ```C++
-    RegCons(Z) RegCons(S)
-    Data(V,Peano,RealType(Z),RealType(S,Peano))
-        Cons0(V,Z,Peano)
-        Cons1(V,S,Peano,Peano)
-    DerivingShow(V,Peano)
-    ```
-    * At first, you should register the constructors' name using `RegCons`.
-    * macro Data is for defining the data structure in C++, and macro RealType is for inferencing the actual type of case classes.
-    * Va is short for `template<typname a>`, while V means Nothing. If you want to use 2 type variables,you can use Vab. 
-    * Cons[d] can be used to define constructors,d is the number of parameters. `Cons2(Va,Cons,a,List<a>,List<a>)` means `Cons::a->List a->List a`
-    * DerivingShow is not necessary.
-
-* pattern matching
-    ```C++
-    int maybe_sum(steak::lazy_type_t<List<Maybe<int>>> l)
-    {
-        int x=0,y=0;
-        while(1)
-        {
-            With(l)
-                Case(Cons,UnZip(Just,y),l)
-                    x+=y;
-                Case(Nil)
-                    break;  /* break while(1) */
-                Case(Cons,UnZip(Nothing),l)
-                    ;            
-            EndWith()
-        }
-        return x;
-    }
-    ```
-    * With(x) starts a pattern matching for x and x must be `lazy_type_t<adt>` or `adt`
-    * Case(constructor name,parameters...) is for matching, {} and break is not necessary. You can also use Unzip for nested pattern matching.
-
-* lazy evaluation
-    * `lazy_type_t` is a template class to seal data types in C++. Constructor functions with the actual name returns a `adt` value, while functions followed by `_` returns a `lazy_type_t<adt>` value. For example, `Cons` is a strict constructor and `Cons_` is a lazy constructor. **warning**: If the constructor takes more than 5 parameters, the parameters must be all instant values or all `lazy_type_t` s.
-    * Apply[d] are macros for calling function and putting off evaluation. Similarly, they only receieve all instant values or all `lazy_type_t` s as parameters.
-* currying functions
-    * use `std::bind` to construct paritial applied functions.
-
-# Runtime Implementations
-If you want to know the implementation of steak, you can read this part for more details. The code below are refined.
 
 * ghost_type_t
 
@@ -136,7 +94,7 @@ If you want to know the implementation of steak, you can read this part for more
 template<typename G,typename B>
 struct ghost_type_t
 {
-    B data;     // just for reinterpret_cast
+    B data;     /* Point 0. reinterpret_cast */
     ghost_type_t(const B& x):data(x){}
 };
 ```
@@ -155,6 +113,7 @@ place_holder_t _;
 template<typename T>
 struct lazy_type_t
 {
+    /* Point 1. using */
     using B=std::function<T()>;
     std::shared_ptr<B> data;
     T eval() const;
@@ -166,11 +125,15 @@ struct lazy_type_t
     Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_type_t<G,K>` is for nested patterning.
 
 ```C++
+/* Point 2. variadic template */
 template<class... T> struct zipped_pair_t;
+
+/* Point 3. specializations */
 template<typename T>
 struct zipped_pair_t<T>
 {
     bool match(T1& v1);
+    /* Point 4. rvalue reference (can be mutable) */
     bool match(T1&& v1);
     bool match(lazy_type_t<T1>& f1);
     bool match(lazy_type_t<T1>&& f1);
@@ -187,6 +150,34 @@ struct zipped_pair_t<T>
 };
 ```
 
+```C++
+template<typename T1,typename... T>
+struct zipped_pair_t<T1,T...>:public std::pair<lazy_type_t<T1>,zipped_pair_t<T...>>
+{
+    zipped_pair_t();
+    zipped_pair_t(const zipped_pair_t<T1,T...>&x);
+
+    template<typename Tx,typename...Ts>
+    zipped_pair_t(const Tx& v1,const Ts&...args);
+
+    bool operator == (const zipped_pair_t<T1,T...>& x) const;
+
+
+    template<typename Tx,typename Ts>
+    bool match(std::pair<Tx,Ts>& tp)
+    {  
+        if(zipped_pair_t<T1>(this->first).match(std::forward<Tx>(tp.first)))
+            /* Point 5. perfect forwarding(skip) */
+            return this->second.match(std::forward<Ts>(tp.second));
+        else
+            return false;
+    }
+
+    template<typename...K>
+    bool match(K...);
+};
+```
+
 * forward_and_zip
 
     forward some arguments and zip them into nested `std::pair` in a similar way of `zipped_pair_t`.
@@ -197,15 +188,21 @@ auto forward_and_zip()
 }
 
 template<typename T1>
+/* Point 6. reference folds */
+// & && == && & == &
+// T & &x == T &x
+// T && && x == T &&x
 auto forward_and_zip(T1&& v1)
 {
     auto sec=_;
+    /* Point 6. decltype */
     return std::pair<T1,decltype(sec)>(std::forward<T1>(v1),std::forward<decltype(sec)>(sec));
 }
 
 template<typename T1,typename...Ts>
 auto forward_and_zip(T1&& v1,Ts&&...vs)
 {
+    /* Point 7. fold expression */
     auto sec = forward_and_zip<Ts...>(std::forward<Ts>(vs)...);
     return std::pair<T1,decltype(sec)>(std::forward<T1>(v1),std::forward<decltype(sec)>(sec));
 }
@@ -233,9 +230,22 @@ struct case_class_t
     The base class of all generalized algebraic data types.
 ```C++
 template<typename...T>
-struct data_class_t:public std::variant<T...>{};
+struct data_class_t:public std::variant<T...>
+{
+    using data_class_label=char;
+};
 
 #define Data(T,name,...) T struct name;T struct name:public data_class_t<__VA_ARGS__>{};
+
+/* Point 8. SFINAE */
+template<typename T>
+struct is_data_class
+{
+    template <typename _T>static auto check(_T)->typename std::decay<typename _T::data_class_label>::type;
+    static void check(...);
+    using type=decltype(check(std::declval<T>()));
+    enum{value=!std::is_void<type>::value};
+};
 ```
 
 * pattern matching
@@ -250,6 +260,66 @@ inline lazy_type_t<adt> construtor_(const t1& v1);
 inline lazy_type_t<adt> construtor_(steak::lazy_type_t<t1> v1);
 inline adt construtor(const t1& v1);
 inline adt construtor(steak::lazy_type_t<t1> v1);
+```
+
+* more details
+```c++
+/* Trick 0. currying template */
+template<typename G>
+struct cal_cons_type
+{
+    template<typename...T>
+    using R=case_class_t<G,T...>;
+};
+
+/* Point 9. if constexpr */
+template<typename T1>
+std::ostream& operator << (std::ostream& out,const zipped_pair_t<T1>& tp)
+{
+    if constexpr(is_data_class<std::decay_t<T1>>::value) out<<'(';
+    out<<tp.data;
+    if constexpr(is_data_class<std::decay_t<T1>>::value) out<<')';
+    return out;
+}
+
+/* Trick 1. dependent types for visiting std::variant */
+template<int index,typename V>
+struct search_t
+{
+    template<typename G,typename S>
+    static bool search(ghost_type_t<G,S>* t,V* var)
+    {
+        try
+        {
+            auto data = std::get<index>(*var);
+            if constexpr(std::is_same_v<G,std::decay_t<decltype(data.constype)>>)
+            {
+                return data.unapply(t->data); 
+            }
+            else
+            {
+                return search_t<index-1,V>::search(t,var);
+            }
+        }
+        catch(std::bad_variant_access&)
+        {
+            return search_t<index-1,V>::search(t,var);
+        }
+    }
+};
+
+template<typename V>
+struct search_t<-1,V>
+{
+    template<typename G,typename S>
+    static bool search(ghost_type_t<G,S>*,V*);
+};
+
+/* Trick 2. macro tricks */
+#define With(x) if(1){auto match_var=x.eval();if(0){;
+#define Case(name,...) }else if(match_var.match(steak::attach_ghost<steak_constructors::name>(steak::forward_and_zip(__VA_ARGS__)))){;
+#define Default }else{;
+#define EndWith() }}
 ```
 
 # Note
