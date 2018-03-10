@@ -22,6 +22,7 @@ dataclass Peano
     Peano S(Peano);        /* succ */
 };
 
+
 template<typename a>
 dataclass Maybe
 {
@@ -61,7 +62,7 @@ int main()
 {
     auto l = Cons(Just(1),Nil<Maybe<int>>());
     l = Cons(Nothing<int>(),l);
-    l = Cons(Just(3),l);
-    cout<<maybe_sum(l);
+    l = Cons(Just_(3),l);
+    cout<<maybe_sum(l)<<endl;
     return 0;
 }
