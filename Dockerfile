@@ -2,6 +2,7 @@ FROM ubuntu:18.04
 
 LABEL maintainer="nicekingwei@foxmail.com"
 
+
 RUN apt update
 RUN apt install -y gcc g++ git haskell-stack
 RUN /usr/bin/stack upgrade
