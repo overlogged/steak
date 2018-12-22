@@ -87,15 +87,15 @@ Examples are available at `examples/`
         * macro tricks
 
 
-* ghost_type_t
+* ghost_t
 
     attch a ghost type to a certain type.
 ```C++
 template<typename G,typename B>
-struct ghost_type_t
+struct ghost_t
 {
     B data;     /* Point 0. reinterpret_cast */
-    ghost_type_t(const B& x):data(x){}
+    ghost_t(const B& x):data(x){}
 };
 ```
 
@@ -122,7 +122,7 @@ struct lazy_type_t
 
 * zipped_pair_t
 
-    Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_type_t<G,K>` is for nested patterning.
+    Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_t<G,K>` is for nested patterning.
 
 ```C++
 /* Point 2. variadic template */
@@ -142,7 +142,7 @@ struct zipped_pair_t<T>
     bool match(std::pair<lazy_type_t<T1>&,place_holder_t> f1);
     bool match(std::pair<lazy_type_t<T1>&&,place_holder_t> f1);
     template<typename G,typename K>
-    bool match(ghost_type_t<G,K>&& tp);
+    bool match(ghost_t<G,K>&& tp);
     bool match(place_holder_t);
 
     template<typename...K>
@@ -287,7 +287,7 @@ template<int index,typename V>
 struct search_t
 {
     template<typename G,typename S>
-    static bool search(ghost_type_t<G,S>* t,V* var)
+    static bool search(ghost_t<G,S>* t,V* var)
     {
         try
         {
@@ -312,7 +312,7 @@ template<typename V>
 struct search_t<-1,V>
 {
     template<typename G,typename S>
-    static bool search(ghost_type_t<G,S>*,V*);
+    static bool search(ghost_t<G,S>*,V*);
 };
 
 /* Trick 2. macro tricks */

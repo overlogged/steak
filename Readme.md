@@ -129,15 +129,15 @@ Examples are available at `examples/`
 # Runtime Implementations
 If you want to know the implementation of steak, you can read this part for more details. The code below are refined.
 
-* ghost_type_t
+* ghost_t
 
     attch a ghost type to a certain type.
 ```C++
 template<typename G,typename B>
-struct ghost_type_t
+struct ghost_t
 {
     B data;     // just for reinterpret_cast
-    ghost_type_t(const B& x):data(x){}
+    ghost_t(const B& x):data(x){}
 };
 ```
 
@@ -163,7 +163,7 @@ struct lazy_type_t
 
 * zipped_pair_t
 
-    Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_type_t<G,K>` is for nested patterning.
+    Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_t<G,K>` is for nested patterning.
 
 ```C++
 template<class... T> struct zipped_pair_t;
@@ -179,7 +179,7 @@ struct zipped_pair_t<T>
     bool match(std::pair<lazy_type_t<T1>&,place_holder_t> f1);
     bool match(std::pair<lazy_type_t<T1>&&,place_holder_t> f1);
     template<typename G,typename K>
-    bool match(ghost_type_t<G,K>&& tp);
+    bool match(ghost_t<G,K>&& tp);
     bool match(place_holder_t);
 
     template<typename...K>
@@ -256,3 +256,7 @@ inline adt construtor(steak::lazy_type_t<t1> v1);
 The compiler and the library works well with `GCC 7.2.0`
 
 Feel free to contact me if you want to know more about Steak.
+
+# Update 2018.12.22
+
+New documentation is coming...
