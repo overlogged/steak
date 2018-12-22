@@ -11,7 +11,7 @@
 #include <variant>
 #include "runtime.h"
 
-#define With(x) if(1){auto match_var=x.eval();if(0){;
+#define With(x) if(1){auto match_var=x.get();if(0){;
 #define Case(name,...) }else if(match_var.match(steak::attach_ghost<steak_constructors::name>(steak::forward_and_zip(__VA_ARGS__)))){;
 #define Default }else{;
 #define EndWith() }}

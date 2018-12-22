@@ -60,9 +60,9 @@ int maybe_sum(List<Maybe<int>> l)
 
 int main()
 {
-    auto l = Cons(Just(1),Nil<Maybe<int>>());
+    auto l = Cons(Just<int>(1),Nil<Maybe<int>>());
     l = Cons(Nothing<int>(),l);
-    l = Cons(Just_(3),l);
+    l = Cons(Just<int>(3),l);
     cout<<maybe_sum(l)<<endl;
     return 0;
 }

@@ -345,7 +345,7 @@ std::ostream& operator<<(std::ostream& out, const zipped_pair_t<T1>& tp) {
 template<typename T1, typename T2, typename...T>
 std::ostream& operator<<(std::ostream& out, const zipped_pair_t<T1,T2,T...>& tp) {
     if constexpr(is_data_class<std::decay_t<T1>>::value) out << '(';
-    out << tp.first;
+    out << tp.first.get();
     if constexpr(is_data_class<std::decay_t<T1>>::value) out << ')';
     out << " " << tp.second;
     return out;
@@ -437,7 +437,7 @@ struct data_class_t : public std::variant<T...> {
         return search_t<sizeof...(T) - 1, std::variant<T...>>::show(out, this);
     }
 
-    auto eval() {
+    auto get() {
         return *this;
     }
 };

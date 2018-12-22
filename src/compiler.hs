@@ -25,7 +25,7 @@ import qualified Text.Parsec.Token as Token
 -- 1.can't handle with macro
 
 -- compiler config
-totalConsN = 5
+totalConsN = 0
 version = 
     "steak language compiler version 1.0\n" ++
     "MIT License Copyright (c) 2017 Long Jinwei\n" ++
@@ -124,8 +124,8 @@ wrapBrace b = encode '{' <> b <> encode '}'
 wrapParenthese::Builder->Builder
 wrapParenthese b = encode '(' <> b <> encode ')'
 
-wrapLazyFun::Builder->Builder
-wrapLazyFun b = encode "return std::function([=](){" <> b <> encode "});"
+wrapLazyFun::Builder->Builder->Builder
+wrapLazyFun ret b = encode "return steak::lazy_call(std::function<" <> ret <> encode "()> ( [=](){" <> b <> encode "} ) );"
 
 
 -- copy from http://hackage.haskell.org/package/parsec-3.1.11/docs/src/Text.Parsec.Language.html#javaStyle
@@ -361,8 +361,8 @@ dataclass = do
                                 n = length as
                                 tbs = foldl (\acc _->[x:y|y<-acc,x<-[True,False]]) [[]] [0..n]
                                 pbs = do
-                                    x<-[True,False]
-                                    y<-if n==0 then [[]] else [replicate n True,replicate n False]
+                                    x<-[False]
+                                    y<-if n==0 then [[]] else [replicate n False]
                                     return (x:y)
                                 
                                 fas = do
@@ -377,16 +377,16 @@ dataclass = do
                                 genCons (s:bs) = let cs = zip3 bs as ([1..]::[Int64]) in
                                     temp <> encode "inline "  <>
                                     (if s then rt else (encode "steak::lazy_type_t<" <> rt <> encode '>')) <> encode ' ' <>
-                                    (if s then name else (name <> encode '_')) <> 
+                                    name <> 
                                     (wrapParenthese.unsplitB ',') (map (\(b,a,i)->if b then 
                                                 encode "const " <> a <> encode "& v" <> encode i else 
                                                 encode "steak::lazy_type_t<" <> a <> encode "> v" <> encode i) cs) <>
-                                    (wrapBrace . (if s then id else wrapLazyFun)) (
+                                    (wrapBrace . (if s then id else wrapLazyFun rt)) (
                                         encode "return " <> genCaseClass c <> ( (wrapParenthese.unsplitB ',') (map (\(b,a,i)-> if b then
                                                     encode 'v' <> encode i else
-                                                    encode 'v' <> encode i <> encode ".eval()") cs) ) <> encode ";" )
+                                                    encode 'v' <> encode i <> encode ".get()") cs) ) <> encode ";" )
 
-                            in  (unsplitB '\n' $ if n<=totalConsN then map genCons tbs else map genCons pbs)            
+                            in  (unsplitB '\n' $ map genCons pbs)            
                                     
         sTotTemp = if null tempDef then mempty else encode "template" <> wrapAngle (genConsTempVars tempDef)                         
         sCaseClass =  (wrapAngle . unsplitB ',' . map genCaseClass) consLst  
@@ -433,7 +433,7 @@ match = do
         code =
             encode "\n/*\n" <> slice (start,end) buf <> encode "\n*/\n" <>
             wrapBrace (
-                encode "\nint match_num=0;\nauto match_var__=" <> var <> encode ".eval();\nif(0){;" <>
+                encode "\nint match_num=0;\nauto match_var__=" <> var <> encode ".get();\nif(0){;" <>
                 mconcat (map (\((expr,_),i)->if expr == mempty then mempty else 
                     encode "}\nelse if(match_var__.match(" <> expr <> encode ")){match_num=" <> encode i <> encode ';') blocks) <>
                 encode "}\nswitch(match_num)\n{\n" <> 

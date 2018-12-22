@@ -26,41 +26,41 @@ Data(V,Peano,RealType(Z),RealType(S,Peano))
 DerivingShow(V,Peano)
 
 
-// Va std::ostream& operator << (std::ostream& out,List<a> l)
-// {
-//     out<<'[';
-//     bool first=true;
-//     while(true)
-//     {
-//         a x;
-//         With(l)
-//             Case(Cons,x,l)
-//                 if(first) first=false;
-//                 else out<<',';
-//                 out<<x;
-//             Case(Nil)
-//                 break;
-//         EndWith()
-//     }
-//     return out<<']';
-// }
+Va std::ostream& operator << (std::ostream& out,List<a> l)
+{
+    out<<'[';
+    bool first=true;
+    while(true)
+    {
+        a x;
+        With(l)
+            Case(Cons,x,l)
+                if(first) first=false;
+                else out<<',';
+                out<<x;
+            Case(Nil)
+                break;
+        EndWith()
+    }
+    return out<<']';
+}
 
-// int maybe_sum(List<Maybe<int>> l)
-// {
-//     int x=0,y=0;
-//     while(1)
-//     {
-//         With(l)
-//             Case(Cons,UnZip(Just,y),l)
-//                 x+=y;
-//             Case(Nil)
-//                 break;
-//             Case(Cons,UnZip(Nothing),l)
-//                 ;            
-//         EndWith()
-//     }
-//     return x;
-// }
+int maybe_sum(steak::lazy_type_t<List<Maybe<int>>> l)
+{
+    int x=0,y=0;
+    while(1)
+    {
+        With(l)
+            Case(Cons,UnZip(Just,y),l)
+                x+=y;
+            Case(Nil)
+                break;
+            Case(Cons,UnZip(Nothing),l)
+                ;            
+        EndWith()
+    }
+    return x;
+}
 
 int main()
 {
@@ -68,8 +68,8 @@ int main()
     l1=Cons(Just<int>(4),l1);
     l1=Cons(Nothing<int>(),l1);
     l1=Cons(Just<int>(6),l1);
-    // cout<<l1<<endl;
-    // cout<<"maybe sum : "<<maybe_sum(l1)<<endl;
+    cout<<l1.get()<<endl;
+    cout<<"maybe sum : "<<maybe_sum(l1)<<endl;
 
     auto x=Cons<int>(1,Nil<int>());
     auto y=Cons<int>(steak::lazy_type_t(1),Nil<int>());

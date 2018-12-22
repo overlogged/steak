@@ -71,7 +71,7 @@ main = do
                 ++ "#include <memory>\n"
                 ++ "#include <variant>\n"
                 ++ "#include \"runtime.h\"\n\n"
-                ++ "#define With(x) if(1){auto match_var=x.eval();if(0){;\n"
+                ++ "#define With(x) if(1){auto match_var=x.get();if(0){;\n"
                 ++ "#define Case(name,...) }else if(match_var.match(steak::attach_ghost<steak_constructors::name>(steak::forward_and_zip(__VA_ARGS__)))){;\n"
                 ++ "#define Default }else{;\n"
                 ++ "#define EndWith() }}\n"
