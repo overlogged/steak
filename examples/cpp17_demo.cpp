@@ -1,6 +1,6 @@
 /**
  *  @brief  a functional library for cpp
- *  @author Nicekingwei(Long Jinwei)
+ *  @author nicekingwei(Long Jinwei)
  */ 
 #include <iostream>
 #include "../include/steak.h"
