@@ -5,3 +5,4 @@
 .stack-work/
 .stack-work-win/
 test*
+.DS*
