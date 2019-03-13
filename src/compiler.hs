@@ -29,7 +29,7 @@ totalConsN = 0
 version = 
     "steak language compiler version 1.0\n" ++
     "MIT License Copyright (c) 2017 Long Jinwei\n" ++
-    "more information at https://github.com/NiceKingWei/steak"
+    "more information at https://github.com/nicekingwei/steak"
 help = 
     "steak language compiler 1.0\n" ++
     "Usage: \n"++

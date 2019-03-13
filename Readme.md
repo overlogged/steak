@@ -1,17 +1,20 @@
 # Steak 1.0
+
 ### A programming language which provides generalized algebraic data types, pattern matching and lazy evaluation based on C++17.
 
 # Installation
 
 * As a domain specific language powered by C++ macros
 
-Just copy include/runtime.h and include/steak.h into your project and #include "steak.h". Be sure your C++ compiler support C++17 standard.
+Just copy include/runtime.h, include/steak.h, include/ret_type_impl.h into your project and #include "steak.h". Be sure your C++ compiler support C++17 standard.
 
 * As a programming language powered by a compiler with C++17 backend.
 
     1. install `haskell-stack`
     1. clone this repository
     1. run `stack install`
+
+* You can try it with docker, see the [Dockerfile](Dockerfile) in this repo.
 
 # Steak Language Documentation
 
@@ -126,137 +129,7 @@ Examples are available at `examples/`
 * currying functions
     * use `std::bind` to construct paritial applied functions.
 
-# Runtime Implementations
-If you want to know the implementation of steak, you can read this part for more details. The code below are refined.
-
-* ghost_t
-
-    attch a ghost type to a certain type.
-```C++
-template<typename G,typename B>
-struct ghost_t
-{
-    B data;     // just for reinterpret_cast
-    ghost_t(const B& x):data(x){}
-};
-```
-
-* place_holder_t
-
-```C++
-struct place_holder_t{char c;};
-place_holder_t _;
-```
-
-* lazy_type_t
-
-    Use function to put off evaluation and `shared_ptr` to manage memory. After `eval()` is called, the function will be replaced by a function that returns the result directly.
-```C++
-template<typename T>
-struct lazy_type_t
-{
-    using B=std::function<T()>;
-    std::shared_ptr<B> data;
-    T eval() const;
-};
-```
-
-* zipped_pair_t
-
-    Use `std::pair` to construct tuple for convenience of pattern matching. All types in `zipped_pair_t` are lazy. use lvalue reference and rvalue reference to distinguish lvalue and rvalue. `std::pair<T,place_holder_t>` is equivalent to T. `ghost_t<G,K>` is for nested patterning.
-
-```C++
-template<class... T> struct zipped_pair_t;
-template<typename T>
-struct zipped_pair_t<T>
-{
-    bool match(T1& v1);
-    bool match(T1&& v1);
-    bool match(lazy_type_t<T1>& f1);
-    bool match(lazy_type_t<T1>&& f1);
-    bool match(std::pair<T1&,place_holder_t> v1);
-    bool match(std::pair<T1&&,place_holder_t> v1);
-    bool match(std::pair<lazy_type_t<T1>&,place_holder_t> f1);
-    bool match(std::pair<lazy_type_t<T1>&&,place_holder_t> f1);
-    template<typename G,typename K>
-    bool match(ghost_t<G,K>&& tp);
-    bool match(place_holder_t);
-
-    template<typename...K>
-    bool match(K...)
-};
-```
-
-* forward_and_zip
-
-    forward some arguments and zip them into nested `std::pair` in a similar way of `zipped_pair_t`.
-```C++
-auto forward_and_zip()
-{
-    return _;
-}
-
-template<typename T1>
-auto forward_and_zip(T1&& v1)
-{
-    auto sec=_;
-    return std::pair<T1,decltype(sec)>(std::forward<T1>(v1),std::forward<decltype(sec)>(sec));
-}
-
-template<typename T1,typename...Ts>
-auto forward_and_zip(T1&& v1,Ts&&...vs)
-{
-    auto sec = forward_and_zip<Ts...>(std::forward<Ts>(vs)...);
-    return std::pair<T1,decltype(sec)>(std::forward<T1>(v1),std::forward<decltype(sec)>(sec));
-}
-```
-
-* case_class_t
-
-    Just attach a ghost type to `zipped_pair_t`.If we discard the ghost type, B and C in `data A = B Int | C Int` are both `case_class<int>`.
-    
-    `unapply` just calls `data`'s `match` function.
-```C++
-template<typename G,class... T>
-struct case_class_t
-{
-    using D=zipped_pair_t<T...>;
-    D data;
-    
-    template<typename K>
-    bool unapply(K& args);
-};
-```
-
-* data_class_t
-
-    The base class of all generalized algebraic data types.
-```C++
-template<typename...T>
-struct data_class_t:public std::variant<T...>{};
-
-#define Data(T,name,...) T struct name;T struct name:public data_class_t<__VA_ARGS__>{};
-```
-
-* pattern matching
-    * `With`, `Case`, `EndWith` are all macros , they can form a complete if block.
-    * Perfect forwarding is important.
-
-* constructor
-
-    Constructor is a function which returns adt or the lazy type of it.
-```C++
-inline lazy_type_t<adt> construtor_(const t1& v1);
-inline lazy_type_t<adt> construtor_(steak::lazy_type_t<t1> v1);
-inline adt construtor(const t1& v1);
-inline adt construtor(steak::lazy_type_t<t1> v1);
-```
-
 # Note
 The compiler and the library works well with `GCC 7.2.0`
 
 Feel free to contact me if you want to know more about Steak.
-
-# Update 2018.12.22
-
-New documentation is coming...

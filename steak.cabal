@@ -1,11 +1,11 @@
 name:                steak
 version:             1.0
-homepage:            https://github.com/NiceKingWei/steak
+homepage:            https://github.com/nicekingwei/steak
 license:             MIT
 license-file:        LICENSE
 author:              Long Jinwei
-maintainer:          nicekingwei@sina.com
-copyright:           2018 Long Jinwei
+maintainer:          nicekingwei@foxmail.com
+copyright:           2019 Long Jinwei
 build-type:          Simple
 extra-source-files:  Readme.md
 cabal-version:       >=1.20

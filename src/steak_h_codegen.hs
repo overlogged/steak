@@ -63,7 +63,7 @@ main = do
             "#ifndef _STEAK_H_\n#define _STEAK_H_\n"
                 ++ "/**\n"
                 ++ " *  @brief  a functional library for cpp\n"
-                ++ " *  @author Nicekingwei(Long Jinwei)\n"
+                ++ " *  @author nicekingwei(Long Jinwei)\n"
                 ++ " */ \n"
                 ++ "#include <iostream>\n"
                 ++ "#include <exception>\n"
